@@ -3,9 +3,7 @@ import xml.etree.ElementTree as ET
 import os
 
 # --- 設定區 ---
-# 1. 請把你在 RSS.app 複製的網址貼在下面 (務必保留雙引號)
-RSS_URL = "https://rss.app/feeds/你的專屬碼.xml"  
-# 2. Webhook 已經設定在 Secrets 了，不用動
+RSS_URL = "https://rss.app/feeds/X71xiTwt4pxp4D1K.xml"  # 已經幫你填好你的專屬網址了！
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
 LAST_TWEET_FILE = "last_tweet.txt"
 
