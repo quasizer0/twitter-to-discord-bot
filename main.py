@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import os
 
 # --- 設定區 ---
-TWITTER_USER = "elonmusk"  # 請把這裡換成你想追蹤的推特帳號 ID (不含 @)
+TWITTER_USER = "HaBEoxo"  # 請把這裡換成你想追蹤的推特帳號 ID (不含 @)
 # 使用 Nitter 鏡像站的 RSS，避免被 Twitter 官方阻擋
 RSS_URL = f"https://nitter.poast.org/{TWITTER_USER}/rss" 
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
