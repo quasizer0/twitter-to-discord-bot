@@ -1,53 +1,36 @@
 import requests
 import xml.etree.ElementTree as ET
 import os
-import time
 
 # --- 設定區 ---
-TWITTER_USER = "HaBEoxo"  # 你要追蹤的帳號
+# 1. 請把你在 RSS.app 複製的網址貼在下面 (務必保留雙引號)
+RSS_URL = "https://rss.app/feeds/你的專屬碼.xml"  
+# 2. Webhook 已經設定在 Secrets 了，不用動
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
 LAST_TWEET_FILE = "last_tweet.txt"
 
-# 準備多個備用鏡像站，防止單一網站 403 被擋
-NITTER_INSTANCES = [
-    "https://nitter.privacydev.net",
-    "https://nitter.catsarch.com",
-    "https://nitter.salastil.com",
-    "https://nitter.poast.org",
-    "https://nitter.woodland.cafe"
-]
-
 def get_latest_tweet():
-    # 偽裝成一般的 Google Chrome 瀏覽器
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    
-    for instance in NITTER_INSTANCES:
-        rss_url = f"{instance}/{TWITTER_USER}/rss"
-        print(f"嘗試連線: {rss_url}")
+    # 簡單的偽裝
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    try:
+        print(f"正在讀取 RSS: {RSS_URL}")
+        response = requests.get(RSS_URL, headers=headers, timeout=10)
         
-        try:
-            response = requests.get(rss_url, headers=headers, timeout=10)
-            if response.status_code == 200:
-                root = ET.fromstring(response.content)
-                items = root.findall('./channel/item')
-                
-                if items:
-                    # 抓取最新貼文的連結
-                    link = items[0].find('link').text
-                    # 提取推文 ID 並組合成官方 X (Twitter) 網址，讓 Discord 預覽更漂亮
-                    tweet_id = link.split('/')[-1].replace('#m', '')
-                    return f"https://x.com/{TWITTER_USER}/status/{tweet_id}"
+        if response.status_code == 200:
+            root = ET.fromstring(response.content)
+            # RSS.app 的格式裡，貼文放在 <item> 裡面
+            items = root.findall('./channel/item')
+            if items:
+                # 抓出最新一篇的連結
+                link = items[0].find('link').text
+                return link
             else:
-                print(f"連線失敗，狀態碼: {response.status_code}，切換下一個...")
-                
-        except Exception as e:
-            print(f"發生錯誤: {e}，切換下一個...")
+                print("RSS 裡面目前沒有文章。")
+        else:
+            print(f"讀取失敗，狀態碼: {response.status_code}")
             
-        time.sleep(2) # 稍微等待2秒再試下一個網站，避免被視為惡意攻擊
-        
-    print("所有鏡像站都無法連線。")
+    except Exception as e:
+        print(f"發生錯誤: {e}")
     return None
 
 def main():
@@ -61,8 +44,7 @@ def main():
             last_tweet = f.read().strip()
 
     if latest_tweet != last_tweet:
-        data = {"content": f"📢 有新推文囉！\n{latest_tweet}"}
-        # 發送至 Discord Webhook
+        data = {"content": f"📢 HaBEoxo 有新推文囉！\n{latest_tweet}"}
         response = requests.post(WEBHOOK_URL, json=data)
         
         if response.status_code in [200, 204]:
